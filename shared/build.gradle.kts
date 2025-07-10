@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,23 +8,7 @@ plugins {
 }
 
 kotlin {
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "Shared"
-            isStatic = true
-        }
-    }
-
-
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
+    jvm()
     macosArm64()
     macosX64()
     tvosArm64()
@@ -38,15 +21,15 @@ kotlin {
     watchosX64()
     watchosArm32()
     watchosArm64()
+    watchosDeviceArm64()
     tvosSimulatorArm64()
     tvosX64()
     tvosArm64()
+    androidNativeX64()
+    androidNativeX86()
+    androidNativeArm32()
+    androidNativeArm64()
 
-    linuxX64()
-    linuxArm64()
-    mingwX64()
-
-    @OptIn(ExperimentalWasmDsl::class)
     listOf(
         js(IR).apply { browser { testTask { enabled = false } } },
         @OptIn(ExperimentalWasmDsl::class)
@@ -54,6 +37,10 @@ kotlin {
     ).forEach {
         it.nodejs()
     }
+
+    linuxX64()
+    linuxArm64()
+    mingwX64()
 
     sourceSets {
         commonMain.dependencies {
@@ -69,7 +56,6 @@ kotlin {
     }
     
     dependencies {
-
             tasks.withType<AbstractTestTask> {
                 runCatching {
                 add("ksp${name.replaceFirstChar { it.uppercase() }}", libs.kotest.framework.symbol.processor)
