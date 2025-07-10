@@ -47,20 +47,12 @@ kotlin {
     mingwX64()
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser {
-            val rootDirPath = project.rootDir.path
-            val projectDirPath = project.projectDir.path
-            commonWebpackConfig {
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
-                }
-            }
-        }
+    listOf(
+        js(IR).apply { browser { testTask { enabled = false } } },
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs().apply { browser { testTask { enabled = false } } }
+    ).forEach {
+        it.nodejs()
     }
 
     sourceSets {
@@ -75,8 +67,14 @@ kotlin {
             implementation(libs.kotest.runner.junit)
         }
     }
+    
     dependencies {
-        add("kspIosSimulatorArm64Test", libs.kotest.framework.symbol.processor)
-    }
-}
 
+            tasks.withType<AbstractTestTask> {
+                runCatching {
+                add("ksp${name.replaceFirstChar { it.uppercase() }}", libs.kotest.framework.symbol.processor)
+                }.getOrElse { logger.warn(it.message, it) }
+            }
+        }
+
+}
