@@ -8,6 +8,29 @@ plugins {
 }
 
 kotlin {
+
+
+    var kspConfigsWithKotest = mutableSetOf<String>()
+    targets.whenObjectAdded {
+        project.dependencies {
+            project.tasks.withType<AbstractTestTask> {
+                runCatching {
+                    project.configurations.names.filter { it.startsWith("ksp") && it.endsWith("Test") }
+                        .forEach { configurationName ->
+                            if (!kspConfigsWithKotest.contains(configurationName)) {
+                                kspConfigsWithKotest.add(configurationName)
+                                logger.lifecycle(" >> Adding Kotest to $configurationName")
+                                add(configurationName, libs.kotest.framework.symbol.processor)
+                            }
+                        }
+
+                }.getOrElse { logger.warn(it.message) }
+            }
+        }
+    }
+
+
+
     jvm()
     macosArm64()
     macosX64()
@@ -54,13 +77,6 @@ kotlin {
             implementation(libs.kotest.runner.junit)
         }
     }
-    
-    dependencies {
-            tasks.withType<AbstractTestTask> {
-                runCatching {
-                add("ksp${name.replaceFirstChar { it.uppercase() }}", libs.kotest.framework.symbol.processor)
-                }.getOrElse { logger.warn(it.message, it) }
-            }
-        }
+
 
 }
