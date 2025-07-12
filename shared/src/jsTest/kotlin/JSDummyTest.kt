@@ -3,9 +3,8 @@ import io.kotest.matchers.shouldBe
 
 class JSDummyTest : FreeSpec({
 
-    "Let's test again" - {
-        "Like we did last summer" {
+    "Let's test again" {
             3 shouldBe 3
-        }
+
     }
 })
