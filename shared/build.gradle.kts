@@ -7,30 +7,15 @@ plugins {
 
 }
 
-kotlin {
-
-
-    var kspConfigsWithKotest = mutableSetOf<String>()
-    targets.whenObjectAdded {
-        project.dependencies {
-            project.tasks.withType<AbstractTestTask> {
-                runCatching {
-                    project.configurations.names.filter { it.startsWith("ksp") && it.endsWith("Test") }
-                        .forEach { configurationName ->
-                            if (!kspConfigsWithKotest.contains(configurationName)) {
-                                kspConfigsWithKotest.add(configurationName)
-                                logger.lifecycle(" >> Adding Kotest to $configurationName")
-                                add(configurationName, libs.kotest.framework.symbol.processor)
-                            }
-                        }
-
-                }.getOrElse { logger.warn(it.message) }
-            }
-        }
+project.configurations.whenObjectAdded {
+    if (name.startsWith("ksp") && name.endsWith("Test")) {
+        logger.lifecycle("  >> Adding Kotest symbol processor dependency to $name")
+        project.dependencies.add(name, libs.kotest.framework.symbol.processor)
     }
 
+}
 
-
+kotlin {
     jvm()
     macosArm64()
     macosX64()
@@ -67,15 +52,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
-        }
-        commonTest.dependencies {
             implementation(libs.kotest.framework.engine)
         }
 
-        jvmTest.dependencies {
-            implementation(libs.kotest.runner.junit)
-        }
     }
 
 
